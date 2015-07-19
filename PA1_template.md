@@ -143,7 +143,7 @@ Here we are counting the total amount of NA values in the dataframe.
 Total.NA = sum(is.na(act[,1]))
 ```
 
-The strategy for removing NA values will be to replace them with the total daily median value.
+The strategy for removing NA values will be to replace them with the total daily median value for that time interval.
 
 
 ```r
@@ -209,7 +209,7 @@ wke$day = "weekend"
 wke$time = row.names(wke)
 colnames(wke) = c("wkd","day","time")
 total = rbind(wke,wkd) 
-xyplot(total[,1]~as.numeric(total[,3])|total[,2],layout = c(1,3),xlab = "Time of Dat",ylab = "Number of Steps")
+xyplot(total[,1]~as.numeric(total[,3])|total[,2],layout = c(1,3),xlab = "Time of Day",ylab = "Number of Steps",type = 'l')
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
