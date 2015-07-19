@@ -1,25 +1,111 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
+title: 'Reproducible Research: Peer Assessment 1'
+output:
   html_document:
-    keep_md: true
+    keep_md: yes
+  word_document: default
 ---
 
 
 ## Loading and preprocessing the data
-
-
-
+The file is first downloaded, unzipped, and read into R as a CSV file.
+```{r,echo=TRUE}
+#download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip",destfile = "Rmark",method = "curl")
+unzip("Rmark")
+act = read.csv("activity.csv")
+```
 ## What is mean total number of steps taken per day?
+We use tapply to find the total of steps taken each day. This value is shown as gh.
+```{r}
+gh = tapply(act[,1],act[,2],sum,na.rm = T)
+hg = as.data.frame(gh)
+hg
+```
+We now can make a histogram of hg to show the distribution of the frequencies of the daily averages.
+```{r}
+hist(hg[,1],main = "Historgam of Daily Averages", xlab = "Number of Steps Taken per Day",ylab = "Frequency")
+```
 
+Lastly we can calculate the the mean and median of our daily averages.
 
-
+```{r}
+mean(hg[,1])
+median(hg[,1])
+```
 ## What is the average daily activity pattern?
+We begin my taking the average by time of day.
+```{r,echo=T}
+ip = tapply(act[,1],act[,3],mean,na.rm = T)
+```
 
+Now we can plot our graph of average numbers of steps taken by hour of the day.
+
+```{r}
+up = as.data.frame(ip)
+plot(unique(act[,3]),ip,type = 'l',main = "Average number of Steps by Time of day",xlab = "Hour of the Day",ylab = "Number of Steps")
+```
+Now we need to determine how at what time and how many steps was the maximum value. This is shown below.
+```{r}
+up[up[,1]==max(ip),]
+```
 
 
 ## Imputing missing values
+Here we are counting the total amount of NA values in the dataframe. 
+```{r,echo=T}
+Total.NA = sum(is.na(act[,1]))
+```
 
+The strategy for removing NA values will be to replace them with the total daily median value for that time interval.
 
+```{r}
+act1 = act
+up[,2] = row.names(up)
+for(i in 1: nrow(act1)){
+  if(is.na(act1[i,1])){
+    act1[i,1] = up[up[,2] == act[i,3],][1]
+  }else{
+    act1[i,1] = act1[i,1]
+  }
+}
+```
+Historgram of new data
+```{r}
 
+gh1 = tapply(act1[,1],act1[,2],sum)
+hg1 = as.data.frame(gh1)
+
+hist(hg1[,1],main = "Histogram of Steps Taken per Day with NA Removed",xlab = "Number of steps taken per day", ylab = "Frequency")
+
+```
+Mean and Median of new data with NAs removed.
+
+```{r}
+mean(as.numeric(act1[,1]))
+median(as.numeric(act1[,1]))
+```
 ## Are there differences in activity patterns between weekdays and weekends?
+
+```{r}
+library(lattice)
+act1$day <- weekdays(as.Date(act1[,2]))
+for( i in 1:nrow(act1))
+if(act1[i,"day"] %in% c("Monday","Tuesday","Wednesday","Thursday","Friday")){
+  act1[i,"day"]= "Weekday"
+}else{
+  act1[i,"day"] = "Weekend"
+}
+sub.weekday = act1[act1[,"day"]=="Weekday",]
+sub.weekend = act1[act1[,"day"] == "Weekend",]
+wkd = tapply(sub.weekday[,1],sub.weekday[,3],mean)
+wke = tapply(sub.weekend[,1],sub.weekend[,3],mean)
+wkd = as.data.frame(wkd)
+wkd$day = "weekday"
+wkd$time = row.names(wkd)
+wke = as.data.frame(wke)
+wke$day = "weekend"
+wke$time = row.names(wke)
+colnames(wke) = c("wkd","day","time")
+total = rbind(wke,wkd) 
+xyplot(total[,1]~as.numeric(total[,3])|total[,2],layout = c(1,3),xlab = "Time of Dat",ylab = "Number of Steps")
+```
